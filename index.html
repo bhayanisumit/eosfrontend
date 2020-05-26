@@ -187,7 +187,7 @@ const fetchGameNameToDisplay = () =>{
             $("#cover-spin").hide();
             const arr = data.data;
             for(const name of data.data){
-                htmldata += `<div class="col-md-3 mt-2"><div class="p-5 text-center bg-secondary"><h3><a onclick='fetchRecord("${name}")'>${name}</a></h3></div></div>`;
+                htmldata += `<div class="col-md-3 mt-2"><div class="p-5 text-center bg-secondary"><h3><a class="pointer" onclick='fetchRecord("${name}")'>${name}</a></h3></div></div>`;
             }
             $("#gameappend").html(htmldata);
             backbtn();
