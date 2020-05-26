@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Welcome to Eosdublin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+        <div id="cover-spin"></div>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-12 text-center"> <h1>Welcome to Eosdublin</h1>
+            </div>
+        </div>
+    </div>
+    <div class="container" >
+            <div class="row">
+               <div class="col-md-12">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addScore" >Add Score</button>
+                    <button type="button" class="btn btn-primary ml-2" id="back" onclick="backbtn()" style="display: none">Back</button>
+               </div>
+            </div>
+            <div class="row mt-2" id="nodata" style="display: none">
+                    <div class="col-md-12 text-center" >
+                            <span class="p-3 bg-info">No Data Found</span>
+                        </div>
+            </div>
+            <div class="row" id="gameappend"></div>
+            <div style="display: none" id="tableData" class="table-responsive mt-2">
+                    <table class="table table-bordered">
+                            <thead>
+                              <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Game</th>
+                                <th scope="col">Player</th>
+                                <th scope="col">Score</th>
+                              </tr>
+                            </thead>
+                            <tbody id="htmlappend"></tbody>
+                          </table>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="addScore" tabindex="-1" role="dialog" aria-labelledby="addscoreLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                        <form id="scoreForm" action="#" name="scoreForm">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="addscoreLabel">Add Score</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                     
+                        <div class="form-group">
+                          <label for="gamename" class="col-form-label">Game Name:</label>
+                          <input type="text" class="form-control" name="gamename" id="gamename">
+                        </div>
+                        <div class="form-group">
+                            <label for="username" class="col-form-label">Username</label>
+                            <input type="text" class="form-control" name="username" id="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="score" class="col-form-label">score:</label>
+                            <input type="text" class="form-control" name="score" id="score">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                  </div>
+                </form>
+                </div>
+              </div>
+
+    
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+<script>
+const baseUrl = "http://localhost:4000/";
+$(function() {
+    
+$('#scoreForm').validate({ // initialize the plugin
+        rules: {
+            gamename: {required: true},
+            username: {required: true},
+            score: {required: true, number: true ,range : [0, 10]}
+           },
+        messages :{
+            "gamename" : {
+                required : 'Enter Gamename'
+            },
+            "username" : {
+                required : 'Enter Username'
+            },
+            "score" : {
+                required : 'Enter Score',
+                number : 'Only Number Allow',
+                range : 'Allow score only 0 to 10'
+            }
+        },
+        submitHandler: (form) => {
+             insertRecord();
+         }
+
+    });
+});
+
+const insertRecord = () => {
+    $("#cover-spin").show();
+    const tmpData = {'gameName' : $("#gamename").val(), 'userName' : $("#username").val() , 'score' : $("#score").val() };
+    $.ajax({
+        url : baseUrl + "scores", 
+        'method': 'post',
+        data : tmpData,
+        success: (data) => {
+          if(data.status){
+            $('#addScore').modal('hide');
+            $("#scoreForm")[0].reset();
+            fetchGameNameToDisplay();
+          }else {
+              alert(data.msg);
+              $("#cover-spin").hide();
+          }
+        },error : (err) =>{
+            
+            alert('Something went wrong');
+            $("#cover-spin").hide();
+        }
+    });
+}
+const deletedata = (val) => {
+    console.log(val);
+}
+const fetchRecord = (val) =>{
+    $("#cover-spin").show();
+    $.ajax({
+        url : baseUrl + "scores/"+val, 
+        success: (data) => {
+          var htmldata = '';
+          if(data.status){
+             $('#addScore').modal('hide');
+            $("#cover-spin").hide();
+            const arr = data.data;
+            for (var i = 0; i < arr.length ; i++) {
+                htmldata += `<tr>
+                            <th scope="row">${i}</th>
+                            <td>${arr[i].gameName}</td>
+                            <td>${arr[i].user}</td>
+                            <td>${arr[i].score}</td>
+                            </tr>`
+            }
+            $("#htmlappend").html(htmldata);
+            $("#gameappend").hide();
+            $("#tableData").show();
+            $("#back").show();
+          }else {
+              $("#cover-spin").hide();
+          }
+        },error : (err) =>{
+            alert('Something went wrong');
+            $("#cover-spin").hide();
+        }
+    });
+}
+
+
+const fetchGameNameToDisplay = () =>{
+    
+    $("#cover-spin").show();
+    $.ajax({
+        url : baseUrl + "gamename", 
+        success: (data) => {
+          var htmldata = '';
+          if(data.status){
+             $('#addScore').modal('hide');
+            $("#cover-spin").hide();
+            const arr = data.data;
+            for(const name of data.data){
+                htmldata += `<div class="col-md-3 mt-2"><div class="p-5 text-center bg-secondary"><h3><a onclick='fetchRecord("${name}")'>${name}</a></h3></div></div>`;
+            }
+            $("#gameappend").html(htmldata);
+            backbtn();
+          }else {
+              $("#cover-spin").hide();
+              $("#nodata").show();
+          }
+        },error : (err) =>{
+            alert('Something went wrong');
+            $("#cover-spin").hide();
+        }
+    });
+}
+const backbtn = () =>{
+    $("#gameappend").show();
+            $("#tableData").hide();
+            $("#back").hide();
+            $("#nodata").hide();
+}
+
+fetchGameNameToDisplay();
+</script>
+</html>
+
